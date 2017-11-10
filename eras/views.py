@@ -8,7 +8,7 @@ from django.views.generic import (
 )
 
 from .models import (
-	Era,
+	Era,EraScheme
 )
 
 

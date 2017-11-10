@@ -61,18 +61,22 @@ class EraSource(ImportedConceptScheme):
         for c in self.getConcepts(URIRef(scheme_obj.uri),gr):
             try:
                 era = Era.objects.get(uri=str(c))
-                startYear = self.getPathVal(gr,c,self.startTimeProperty) 
-                try:
-                    era.startYear = float(startYear)
-                except:
-                    era.startDate = startYear
-                endYear = self.getPathVal(gr,c,self.endTimeProperty) 
-                try:
-                    era.endYear = float(endYear)
-                except:
-                    era.endDate = endYear
-                era.startYearUncert = self.getPathVal(gr,c,self.startTimeUncertProperty ) 
-                era.endYearUncert = self.getPathVal(gr,c,self.endTimeUncertProperty ) 
+                if self.startTimeProperty:
+                    startYear = self.getPathVal(gr,c,self.startTimeProperty) 
+                    try:
+                        era.startYear = float(startYear)
+                    except:
+                        era.startDate = startYear
+                if self.endTimeProperty :
+                    endYear = self.getPathVal(gr,c,self.endTimeProperty) 
+                    try:
+                        era.endYear = float(endYear)
+                    except:
+                        era.endDate = endYear
+                if self.startTimeUncertProperty:
+                    era.startYearUncert = self.getPathVal(gr,c,self.startTimeUncertProperty ) 
+                if self.endTimeUncertProperty:
+                    era.endYearUncert = self.getPathVal(gr,c,self.endTimeUncertProperty ) 
                 era.save()
             except Exception as e:
                 print "Couldnt access path startTimeProperty for concept %s , %s " % (c,e)
