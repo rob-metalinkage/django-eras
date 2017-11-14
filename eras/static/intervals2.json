@@ -1,0 +1,6 @@
+{
+"records": [
+{"oid":753,"typ":"int","nam":"Archean","lvl":1,"pid":0,"col":"#F0047F","lag":2500,"eag":4000,"rid":[15443]},
+{"oid":752,"typ":"int","nam":"Proterozoic","lvl":1,"pid":0,"col":"#F73563","lag":541,"eag":2500,"rid":[47900]}
+]
+}
