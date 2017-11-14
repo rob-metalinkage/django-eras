@@ -30,4 +30,9 @@ urlpatterns = [
         view=views.eraListView.as_view(),
         name='era_list',
     ),
+	url(
+        regex="^erascheme/(?P<scheme_id>\d+)/intervals$",
+        view=views.eraIntervals,
+        name='era_list',
+    ),
 	]

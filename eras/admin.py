@@ -6,8 +6,8 @@ from django.utils.translation import ugettext_lazy as _
 
 class EraAdmin(ConceptAdmin):
     readonly_fields = ('created','modified')
-    search_fields = ['term','uri','pref_label','slug','definition']
-    list_display = ('term','pref_label','startYear','endYear','top_concept')
+    search_fields = ['term','uri','pref_label','rank__pref_label','definition']
+    list_display = ('term','pref_label','rank','startYear','endYear','top_concept')
     #list_editable = ('status','term','scheme','top_concept')
     list_filter = ('scheme','status')
     change_form_template = 'admin_concept_change.html'

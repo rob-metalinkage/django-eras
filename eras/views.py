@@ -7,8 +7,11 @@ from django.views.generic import (
     ListView
 )
 
+from django.http import HttpResponse
+import json
+
 from .models import (
-	Era,EraScheme
+    Era,EraScheme
 )
 
 
@@ -36,11 +39,22 @@ class eraListView(ListView):
 
     model = Era
 
-class eraIntervals(ListView):
+def eraIntervals(request,scheme_id):
+    if request.GET.get('pdb') :
+        import pdb; pdb.set_trace()
+    try:
+        start = int(request.GET.get('start'))
+    except:
+        start = None
+    try:
+        end = int(request.GET.get('end'))
+    except:
+        end = None        
+    scheme = EraScheme.objects.get(id=scheme_id)
+    return HttpResponse(    scheme.json_intervals(start=start,end=end),  content_type="application/json")
+   
 
-    model = EraScheme
-
-class eraTimeline(ListView):
+def eraTimeline(request,scheme_id):
     """Generate a d3 interactive timeline vizualisation
     
     Hierarchical D3 viz, with zoom and link to details. Todo. Todo later still... make link configurable

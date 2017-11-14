@@ -5,7 +5,7 @@ from django.db import models
 from skosxl.models import *
 from rdf_io.models import RDFpath_Field
 from rdflib.term import URIRef, Literal
-
+import json
 from model_utils.models import TimeStampedModel
 
 class EraFrame(TimeStampedModel):
@@ -22,6 +22,57 @@ class EraScheme(Scheme):
     frame = models.ForeignKey(EraFrame)
     startYear = models.DecimalField(blank=True,null=True, max_digits=10,decimal_places=2, help_text=u'Start year, using scaling factor from timeframe specified in the EraScheme')    
     endYear = models.DecimalField(blank=True,null=True, max_digits=10,decimal_places=2, help_text=u'Start year, using timeframe specified in the EraScheme')
+    
+    def json_intervals(self,start=None, end=None, max=None, node=None):
+        """ get a intervals array in the form used by timescale.js 
+        
+        allows setting start and/or end date (years, using timeframe for the era scheme), or a starting node, whose timeframe will be used
+        """
+        records = []
+        children = {}
+        childrels = SemRelation.objects.filter(rel_type=REL_TYPES.narrower)
+        for rel in childrels :
+            children[ rel.target_concept] = rel.origin_concept
+        childrels = SemRelation.objects.filter(rel_type=REL_TYPES.broader)
+        for rel in childrels :
+            children[ rel.origin_concept.id ] =  rel.target_concept.id
+       
+        for rel in childrels :
+            children[ rel.target_concept.id] = rel.origin_concept.id
+        filters = {}
+        if self.frame.yearFactor > 0 :
+            if start:
+                filters["endYear__gte"] = float(start)
+            if end:
+                filters["startYear__lte"] = float(end)
+        else:
+            if start:
+                filters["endYear__lte"] = float(start)
+            if end:
+                filters["startYear__gte"] = float(end)            
+        eras = Era.objects.filter(scheme=self.id, **filters) # pref_label__in=['Archean','Proterozoic'])
+        for era in eras :
+            
+            details = { 'oid': era.id , 'nam':era.pref_label,  'type':'int', 'lag': float(era.startYear),  "col":"#FEBF65" }
+            try:
+                details['lvl']= era.rank.level or 0
+            except:
+                print "Failed to get level"        
+            try:
+                details['eag'] = float(era.endYear)
+            except:
+                print "No end year %s " % era
+                details['eag'] = 0
+            if era.top_concept :
+                details ['pid']  = 0
+            else :
+                try:
+                    details ['pid'] = children[ era.id ]
+                except:
+                    pass
+            records.append (  details )
+        return json.dumps({ 'records':records })
+        
     
 class Era(Concept):
     """ An era, as an extended concept with start and end times, in flexible but simple form"""
@@ -61,6 +112,7 @@ class EraSource(ImportedConceptScheme):
         for c in self.getConcepts(URIRef(scheme_obj.uri),gr):
             try:
                 era = Era.objects.get(uri=str(c))
+                startYear = None
                 if self.startTimeProperty:
                     startYear = self.getPathVal(gr,c,self.startTimeProperty) 
                     try:
@@ -69,6 +121,8 @@ class EraSource(ImportedConceptScheme):
                         era.startDate = startYear
                 if self.endTimeProperty :
                     endYear = self.getPathVal(gr,c,self.endTimeProperty) 
+                    if startYear and not endYear:
+                        endYear = 0
                     try:
                         era.endYear = float(endYear)
                     except:
