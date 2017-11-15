@@ -30,16 +30,13 @@ class EraScheme(Scheme):
         """
         records = []
         children = {}
-        childrels = SemRelation.objects.filter(rel_type=REL_TYPES.narrower)
+        childrels = SemRelation.objects.filter(rel_type=REL_TYPES.narrower, origin_concept__scheme=self)
         for rel in childrels :
             children[ rel.target_concept] = rel.origin_concept
-        childrels = SemRelation.objects.filter(rel_type=REL_TYPES.broader)
+        childrels = SemRelation.objects.filter(rel_type=REL_TYPES.broader, origin_concept__scheme=self)
         for rel in childrels :
             children[ rel.origin_concept.id ] =  rel.target_concept.id
-       
-        for rel in childrels :
-            children[ rel.target_concept.id] = rel.origin_concept.id
-        filters = {}
+        filters = { "startYear__isnull":False }
         if self.frame.yearFactor > 0 :
             if start:
                 filters["endYear__gte"] = float(start)
@@ -53,13 +50,13 @@ class EraScheme(Scheme):
         eras = Era.objects.filter(scheme=self.id, **filters) # pref_label__in=['Archean','Proterozoic'])
         for era in eras :
             
-            details = { 'oid': era.id , 'nam':era.pref_label,  'type':'int', 'lag': float(era.startYear),  "col":"#FEBF65" }
+            details = { 'oid': era.id , 'nam':era.pref_label,  'type':'int', 'eag': float(era.startYear),  "col":"#FEBF65" }
             try:
                 details['lvl']= era.rank.level or 0
             except:
                 print "Failed to get level"        
             try:
-                details['eag'] = float(era.endYear)
+                details['lag'] = float(era.endYear)
             except:
                 print "No end year %s " % era
                 details['eag'] = 0

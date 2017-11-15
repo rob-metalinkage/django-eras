@@ -57,8 +57,8 @@ var timescale = (function() {
         .attr("transform", "translate(0,125)");
 
       // Load the time scale data 
-      // d3.json("intervals2.json", function(error, result) {
-      d3.json("/eras/erascheme/12/intervals", function(error, result) {
+      //d3.json("intervals3.json", function(error, result) {
+      d3.json("/eras/erascheme/14/intervals", function(error, result) {
 
         for(var i=0; i < result.records.length; i++) {
           var r = result.records[i];
@@ -80,8 +80,9 @@ var timescale = (function() {
 		
 		// Create a new d3 partition layout
         var partition = d3.layout.partition()
-            .sort(function(d) { d3.ascending(d); })
-            .value(function(d) { return d.total; });
+ //           .sort(function(d) { d3.descending(d.eag); })
+             .sort(function(a,b) { return d3.descending(a.eag,b.eag) ; })
+              .value(function(d) { return d.total; });
 
         var rectGroup = time.append("g")
           .attr("id", "rectGroup");
