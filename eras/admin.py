@@ -22,9 +22,9 @@ class EraAdmin(ConceptAdmin):
                                         extra_context={'scheme_id':scheme_id})
             
     fieldsets = (   (_(u'Era'), {'fields':('term','startYear','startDate','startYearUncert','endYear','endDate','endYearUncert')}),
-                    (_(u'Scheme'), {'fields':('uri','scheme','pref_label','top_concept')}),
+                    (_(u'Scheme'), {'fields':('uri','scheme','pref_label','top_concept','rank','definition')}),
                     (_(u'Meta-data'),
-                    {'fields':(('definition','changenote'),'created','modified'),
+                    {'fields':('prefStyle','changenote','created','modified'),
                      'classes':('collapse',)}),
                      )
     inlines = [   NotationInline, LabelInline, RelInline, SKOSMappingInline]

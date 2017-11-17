@@ -29,13 +29,13 @@ class EraScheme(Scheme):
         allows setting start and/or end date (years, using timeframe for the era scheme), or a starting node, whose timeframe will be used
         """
         records = []
-        children = {}
-        childrels = SemRelation.objects.filter(rel_type=REL_TYPES.narrower, origin_concept__scheme=self)
-        for rel in childrels :
-            children[ rel.target_concept] = rel.origin_concept
+        # remember also which ones had parents - so we can prune floating events from the result set
+        parents = {}
+		# only have to look at broader, because reverse relationship narrower will generate this if missing
         childrels = SemRelation.objects.filter(rel_type=REL_TYPES.broader, origin_concept__scheme=self)
         for rel in childrels :
-            children[ rel.origin_concept.id ] =  rel.target_concept.id
+            parents[ rel.origin_concept.id ] =  rel.target_concept.id
+ 
         filters = { "startYear__isnull":False }
         if self.frame.yearFactor > 0 :
             if start:
@@ -50,7 +50,20 @@ class EraScheme(Scheme):
         eras = Era.objects.filter(scheme=self.id, **filters) # pref_label__in=['Archean','Proterozoic'])
         for era in eras :
             
-            details = { 'oid': era.id , 'nam':era.pref_label,  'type':'int', 'eag': float(era.startYear),  "col":"#FEBF65" }
+            details = { 'oid': era.id , 'nam':era.pref_label,  'type':'int', 'eag': float(era.startYear)}
+            if era.top_concept :
+                details ['pid']  = 0
+            else :
+                if not parents.get(era.id) :
+                    continue  # not a topconcept and has no parents - so ignore it
+                try:
+                    details ['pid'] = parents[ era.id ]
+                except:
+                    pass
+            try:
+                details['col']= era.prefStyle
+            except:
+                pass
             try:
                 details['lvl']= era.rank.level or 0
             except:
@@ -60,13 +73,7 @@ class EraScheme(Scheme):
             except:
                 print "No end year %s " % era
                 details['eag'] = 0
-            if era.top_concept :
-                details ['pid']  = 0
-            else :
-                try:
-                    details ['pid'] = children[ era.id ]
-                except:
-                    pass
+ 
             records.append (  details )
         return json.dumps({ 'title':self.pref_label, 'frame': { 'name':self.frame.name, 'factor':self.frame.yearFactor, 'def':self.frame.uri},  'records':records })
         
@@ -81,7 +88,7 @@ class Era(Concept):
     endDate = models.DateField(help_text=u'Use this only if a precise date is known and important (year will be auto-calculated)',blank=True,null=True)
     nextEra = models.OneToOneField("self", related_name="next",blank=True, null=True,help_text=u'Next Era in sequence - should be at same level of detail' )
     previousEra = models.OneToOneField("self", related_name="previous", blank=True, null=True,help_text=u'Previous Era in sequence - should be at same level of detail')
-
+    
 class EraSource(ImportedConceptScheme):
     frame = models.ForeignKey(EraFrame)
     startTimeProperty = RDFpath_Field( blank=True, null=True, help_text=u'RDF property path for era start time. prefixes must be registered in RDF_IO.namespaces' )

@@ -6,6 +6,14 @@ d3.selection.prototype.moveToFront = function() {
   });
 };
 
+colourramp = function(node, scale, startval, endval) {
+	for (var i in node.children ){
+		var n= node.children[i] ;		
+	    n.col =  n.col || scale( Math.abs((n.eag - startval) / (endval - startval)) );
+		colourramp(n,scale, startval, endval);
+	}
+}
+
 var timescale = (function() {
   var data = { oid: 0, col: "#000000", nam: "Time scale", children: [] },
       interval_hash = { 0: data },
@@ -61,6 +69,7 @@ var timescale = (function() {
       var endYear = 0
 	  var startYear = 0
 	  
+	  
       // Load the time scale data 
       //d3.json("intervals3.json", function(error, result) {
       d3.json(source, function(error, result) {
@@ -95,7 +104,10 @@ var timescale = (function() {
 				 : 
 				 parent_hash[pid].sort(function(a,b) { return (b.eag - a.eag)});
         }
-		
+	
+		var colorscale = chroma.scale('Set3')
+		// traverse the tree from top assigning portions of color ramp to each partition, if not set from source data
+		colourramp(data,colorscale,startYear*axissign,endYear*axissign)
 		// Create a new d3 partition layout
    //   var partition = (axissign == 1) ? d3.layout.partition().sort(function(d) { d3.ascending(d.eag); }) : d3.layout.partition().sort(function(d) { d3.descending(d.eag); })
         var partition =  d3.layout.partition()
