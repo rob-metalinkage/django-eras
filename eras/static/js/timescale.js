@@ -7,7 +7,7 @@ d3.selection.prototype.moveToFront = function() {
 };
 
 var timescale = (function() {
-  var data = { oid: 0, col: "#000000", nam: "Geologic Time", children: [] },
+  var data = { oid: 0, col: "#000000", nam: "Time scale", children: [] },
       interval_hash = { 0: data },
 	  parent_hash = {},
       currentInterval,
@@ -15,11 +15,12 @@ var timescale = (function() {
 
   return {
 
-    "init": function(div) {
+    "init": function(div,source) {
       var w = 960,
           h = 130,
           x = d3.scale.linear().range([0, w - 5]),
           y = d3.scale.linear().range([0, h]),
+		  axissign = 1,
           newX = 0.01;
 
       var drag = d3.behavior.drag()
@@ -56,17 +57,31 @@ var timescale = (function() {
         .attr("id", "tickBar")
         .attr("transform", "translate(0,125)");
 
+	  // calculate begin and end years
+      var endYear = 0
+	  var startYear = 0
+	  
       // Load the time scale data 
       //d3.json("intervals3.json", function(error, result) {
-      d3.json("/eras/erascheme/14/intervals", function(error, result) {
-
+      d3.json(source, function(error, result) {
+        axissign = Math.sign( result.frame.factor )
+	    data.nam = result.title
         for(var i=0; i < result.records.length; i++) {
+
           var r = result.records[i];
           r.children = [];
           r.pid = r.pid || 0;
+		  if (i == 0 ) {
+			endYear=r.lag* axissign;
+		    startYear=r.eag* axissign;
+		  }
+		  if ( endYear < (r.lag * axissign) )
+			  endYear = r.lag* axissign;
+		  if ( startYear > r.eag* axissign )
+			  startYear = r.eag* axissign;
           r.abr = r.abr || r.nam.charAt(0);
-          r.mid = parseInt((r.eag + r.lag) / 2),
-          r.total = r.eag - r.lag;
+          r.mid = parseInt((r.eag + r.lag) / 2);
+          r.total = Math.abs(r.eag - r.lag);
           interval_hash[r.oid] = r;
           if (r.pid in parent_hash)
 			parent_hash[r.pid].push(r);
@@ -75,14 +90,17 @@ var timescale = (function() {
         }
 		// fill in parent/child in second pass as we cant guarantee order.
         for(var pid in parent_hash) {
- 		    interval_hash[pid].children = parent_hash[pid];
+ 		    interval_hash[pid].children = (axissign == 1) ? 
+			     parent_hash[pid].sort( function(a,b) { return (a.eag - b.eag)  } )
+				 : 
+				 parent_hash[pid].sort(function(a,b) { return (b.eag - a.eag)});
         }
 		
 		// Create a new d3 partition layout
-        var partition = d3.layout.partition()
- //           .sort(function(d) { d3.descending(d.eag); })
-             .sort(function(a,b) { return d3.descending(a.eag,b.eag) ; })
-              .value(function(d) { return d.total; });
+   //   var partition = (axissign == 1) ? d3.layout.partition().sort(function(d) { d3.ascending(d.eag); }) : d3.layout.partition().sort(function(d) { d3.descending(d.eag); })
+        var partition =  d3.layout.partition()
+		   .sort(function(d) { d3.ascending(d.eag) })
+		   .value(function(d) { return d.total; });
 
         var rectGroup = time.append("g")
           .attr("id", "rectGroup");
@@ -120,12 +138,12 @@ var timescale = (function() {
         hash.append("text")
           .attr("x", 0)
           .attr("y", 20)
-          .style("text-anchor", function(d) { return (d.eag == 0.0117) ? "end" : "middle"; })
+          .style("text-anchor", function(d) { return (d.lag == endYear) ? "end" : "middle"; })
           .style("font-size", "0.65em")
           .style("fill", "#777")
           .text(function(d) {return d.eag});
 
-        // Create a tick for year 0
+        // Create a tick for endYear
         var now = scale.append("g")
           .data([{x:1, y:0}])
           .attr("class", "tickGroup s1 s2 s3 s4 s5")
@@ -145,7 +163,7 @@ var timescale = (function() {
           .style("text-anchor", "end")
           .style("font-size", "0.65em")
           .style("fill", "#777")
-          .text("0");
+          .text(endYear);
 
         var textGroup = time.append("g")
           .attr("id", "textGroup");
@@ -186,7 +204,7 @@ var timescale = (function() {
         // Position the labels for the first time
         timescale.goTo(interval_hash[0]);
 
-        // Remove the Geologic time abbreviation
+        // Remove the top time title bar abbreviation
         d3.select(".abbr.levelundefined").remove();
 
         // Open to Phanerozoic 
