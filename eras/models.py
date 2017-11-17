@@ -68,7 +68,7 @@ class EraScheme(Scheme):
                 except:
                     pass
             records.append (  details )
-        return json.dumps({ 'records':records })
+        return json.dumps({ 'title':self.pref_label, 'frame': { 'name':self.frame.name, 'factor':self.frame.yearFactor, 'def':self.frame.uri},  'records':records })
         
     
 class Era(Concept):

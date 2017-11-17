@@ -10,8 +10,8 @@ class EraAdmin(ConceptAdmin):
     list_display = ('term','pref_label','rank','startYear','endYear','top_concept')
     #list_editable = ('status','term','scheme','top_concept')
     list_filter = ('scheme','status')
-    change_form_template = 'admin_concept_change.html'
-    change_list_template = 'admin_concept_list.html'
+ #   change_form_template = 'admin_concept_change.html'
+    change_list_template = 'eras/admin_era_scheme.html'
 
     def changelist_view(self, request, extra_context=None):
         try :
