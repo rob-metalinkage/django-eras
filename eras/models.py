@@ -98,7 +98,7 @@ class EraSource(ImportedConceptScheme):
     
     def save(self,*args,**kwargs):  
         # save first - to make file available
-        import pdb; pdb.set_trace()
+ 
         if not self.force_bulk_only :
             target_repo = self.target_repo
             self.target_repo = None
