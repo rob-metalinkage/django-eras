@@ -9,7 +9,7 @@ class EraAdmin(ConceptAdmin):
     search_fields = ['term','uri','pref_label','rank__pref_label','definition']
     list_display = ('term','pref_label','rank','startYear','endYear','top_concept')
     #list_editable = ('status','term','scheme','top_concept')
-    list_filter = ('scheme','status')
+    list_filter = ( ('scheme',admin.RelatedOnlyFieldListFilter), 'status')
  #   change_form_template = 'admin_concept_change.html'
     change_list_template = 'eras/admin_era_scheme.html'
 
