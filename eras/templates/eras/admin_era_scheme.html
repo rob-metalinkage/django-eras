@@ -1,0 +1,22 @@
+{% extends "admin/change_list.html" %}
+{% block content %}
+
+<div id="chart" class="gallery">
+</div>
+
+    <script src="/static/js/d3.v3.min.js"></script>
+	    <!-- <script src="d3.js"></script> -->
+  <script type='text/javascript' src="/static/js/chroma.min.js"></script>
+  
+    <script src="/static/js/timescale.js"></script>
+    <script type="text/javascript">
+
+    // Start
+    timescale.init("chart","/eras/erascheme/{{ scheme_id }}/intervals");
+
+    </script>
+  </body>
+  
+{{ block.super }}
+
+{% endblock %}
