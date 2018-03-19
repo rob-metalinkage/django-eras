@@ -23,7 +23,7 @@ var timescale = (function() {
 
   return {
 
-    "init": function(div,source) {
+    "init": function(div,source,focus_object) {
       var w = 960,
           h = 130,
           x = d3.scale.linear().range([0, w - 5]),
@@ -220,7 +220,7 @@ var timescale = (function() {
         d3.select(".abbr.levelundefined").remove();
 
         // Open to Phanerozoic 
-        //timescale.goTo(interval_hash[751]);
+        timescale.goTo(interval_hash[focus_object]);
 
       }); // End PaleoDB json callback
 
