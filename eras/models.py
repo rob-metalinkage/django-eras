@@ -108,9 +108,12 @@ class EraSource(ImportedConceptScheme):
             super(EraSource, self).save(*args,**kwargs)
         parsedRDF = self.get_graph()
         # import the basic SKOS elements of the scheme using the era subclasses
-        scheme_obj = self.importScheme(parsedRDF,self.target_scheme, self.force_refresh, schemeClass=EraScheme, conceptClass=Era, schemeDefaults={'frame':self.frame})
+        # def importScheme(self,gr, target_scheme,  force_refresh, schemegraph, schemeClass=Scheme, conceptClass=Concept,schemeDefaults={}, classDefaults={} ):
+    
+        scheme_objs_found = self.importSchemes(parsedRDF,self.target_scheme, self.force_refresh, schemeClass=EraScheme, conceptClass=Era, schemeDefaults={'frame':self.frame})
         # now process the temporal elements
-        self.importTimes(scheme_obj,parsedRDF)
+        for scheme_obj in scheme_objs_found:
+            self.importTimes(scheme_obj,parsedRDF)
         
     def importTimes(self, scheme_obj, gr):
         for c in self.getConcepts(URIRef(scheme_obj.uri),gr):
