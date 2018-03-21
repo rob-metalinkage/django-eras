@@ -78,7 +78,20 @@ class EraSchemeAdmin(SchemeAdmin):
 
 admin.site.register(EraScheme, EraSchemeAdmin)
 
+class DerivedSchemesInline(admin.TabularInline):
+    readonly_fields = ('label',)
+    model =  EraSource.schemes.through
+    fields = ('label',)
+    extra = 0
+    can_delete = False
+    def label(self,instance):
+        return '<a href="../../../erascheme/%s/change/" target="_new">%s</a>' % (instance.scheme.id, instance.scheme.pref_label)
+    label.allow_tags = True
+
+    
 class EraSourceAdmin(ImportedConceptSchemeAdmin):
+    change_form_template = 'eras/admin_era_source_change.html'
+    inlines = [  DerivedSchemesInline , ]
     pass
 
 admin.site.register(EraSource, EraSourceAdmin)
